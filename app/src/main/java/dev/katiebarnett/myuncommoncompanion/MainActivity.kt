@@ -41,9 +41,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Content(name: String, modifier: Modifier = Modifier) {
+fun Content(
+    name: String,
+    firstTextChangeInitialValue: Boolean = false,
+    modifier: Modifier = Modifier
+) {
     var input by remember { mutableStateOf<String>("") }
     var result by remember { mutableStateOf<String>("") }
+    var firstTextChange by remember { mutableStateOf<Boolean>(firstTextChangeInitialValue) }
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier.padding(16.dp)
@@ -57,14 +62,27 @@ fun Content(name: String, modifier: Modifier = Modifier) {
             value = input,
             onValueChange = {
                 input = it
+                firstTextChange = true
+            },
+            isError = firstTextChange && input.isNullOrBlank(),
+            supportingText = {
+                if (input.isNullOrBlank() && firstTextChange) {
+                    Text(
+                        text = "Please enter some text",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             },
             label = {
                 Text(text = "What type of pet would you like?")
             }
         )
-        Button(onClick = {
-            result = input
-        }) {
+        Button(
+            onClick = {
+                result = input
+            },
+            enabled = firstTextChange && !input.isNullOrBlank()
+        ) {
             Text(text = "Submit")
         }
         Text(text = result)
@@ -76,5 +94,13 @@ fun Content(name: String, modifier: Modifier = Modifier) {
 fun ContentPreview() {
     MyUncommonCompanionTheme {
         Content(stringResource(id = R.string.app_name))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ContentPreviewInError() {
+    MyUncommonCompanionTheme {
+        Content(stringResource(id = R.string.app_name), firstTextChangeInitialValue = true)
     }
 }
