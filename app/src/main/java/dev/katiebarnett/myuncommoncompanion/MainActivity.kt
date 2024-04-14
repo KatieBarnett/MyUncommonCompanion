@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,6 +43,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Content(name: String, modifier: Modifier = Modifier) {
     var input by remember { mutableStateOf<String>("") }
+    var result by remember { mutableStateOf<String>("") }
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier.padding(16.dp)
@@ -60,6 +62,12 @@ fun Content(name: String, modifier: Modifier = Modifier) {
                 Text(text = "What type of pet would you like?")
             }
         )
+        Button(onClick = {
+            result = input
+        }) {
+            Text(text = "Submit")
+        }
+        Text(text = result)
     }
 }
 
