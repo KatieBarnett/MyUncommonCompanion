@@ -15,6 +15,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,9 +52,19 @@ fun Content(
     firstTextChangeInitialValue: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    var input by remember { mutableStateOf<String>("") }
+    var home by remember { mutableStateOf<String>("") }
+    var hobbies by remember { mutableStateOf<String>("") }
+    var family by remember { mutableStateOf<String>("") }
     var result by remember { mutableStateOf<String>("") }
-    var firstTextChange by remember { mutableStateOf<Boolean>(firstTextChangeInitialValue) }
+    var firstTextChangeHome by remember { mutableStateOf<Boolean>(firstTextChangeInitialValue) }
+    var firstTextChangeHobbies by remember { mutableStateOf<Boolean>(firstTextChangeInitialValue) }
+    var firstTextChangeFamily by remember { mutableStateOf<Boolean>(firstTextChangeInitialValue) }
+
+    val input by remember { derivedStateOf {
+        "Recommend one pet for me that is not a usual domesticated animal, I live in $home, I like to $hobbies and my family is $family."
+        }
+    }
+
     val coroutineScope = rememberCoroutineScope()
     val generativeModel = GenerativeModel(
         // Use a model that's applicable for your use case (see https://ai.google.dev/models)
@@ -74,14 +85,14 @@ fun Content(
             modifier = Modifier
         )
         TextField(
-            value = input,
+            value = home,
             onValueChange = {
-                input = it
-                firstTextChange = true
+                home = it
+                firstTextChangeHome = true
             },
-            isError = firstTextChange && input.isNullOrBlank(),
+            isError = firstTextChangeHome && home.isNullOrBlank(),
             supportingText = {
-                if (input.isNullOrBlank() && firstTextChange) {
+                if (home.isNullOrBlank() && firstTextChangeHome) {
                     Text(
                         text = "Please enter some text",
                         color = MaterialTheme.colorScheme.error
@@ -89,7 +100,45 @@ fun Content(
                 }
             },
             label = {
-                Text(text = "What type of pet would you like?")
+                Text(text = "What type of home do you live in?")
+            }
+        )
+        TextField(
+            value = hobbies,
+            onValueChange = {
+                hobbies = it
+                firstTextChangeHobbies = true
+            },
+            isError = firstTextChangeHobbies && hobbies.isNullOrBlank(),
+            supportingText = {
+                if (hobbies.isNullOrBlank() && firstTextChangeHobbies) {
+                    Text(
+                        text = "Please enter some text",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            label = {
+                Text(text = "What are your hobbies?")
+            }
+        )
+        TextField(
+            value = family,
+            onValueChange = {
+                family = it
+                firstTextChangeFamily = true
+            },
+            isError = firstTextChangeFamily && family.isNullOrBlank(),
+            supportingText = {
+                if (family.isNullOrBlank() && firstTextChangeFamily) {
+                    Text(
+                        text = "Please enter some text",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            label = {
+                Text(text = "What is your family like?")
             }
         )
         Button(
@@ -98,7 +147,8 @@ fun Content(
                     result = generativeModel.generateContent(input).text.orEmpty()
                 }
             },
-            enabled = firstTextChange && !input.isNullOrBlank()
+            enabled = firstTextChangeHome && firstTextChangeHobbies && firstTextChangeFamily
+                    && !home.isNullOrBlank() && !hobbies.isNullOrBlank() && !family.isNullOrBlank()
         ) {
             Text(text = "Submit")
         }
