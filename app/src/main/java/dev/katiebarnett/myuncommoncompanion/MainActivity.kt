@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +26,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
@@ -36,6 +38,7 @@ import com.google.firebase.ai.type.HarmCategory
 import com.google.firebase.ai.type.SafetySetting
 import dev.katiebarnett.myuncommoncompanion.ui.theme.MyUncommonCompanionTheme
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +66,7 @@ fun Content(
     var home by remember { mutableStateOf<String>("") }
     var hobbies by remember { mutableStateOf<String>("") }
     var family by remember { mutableStateOf<String>("") }
-    var result by remember { mutableStateOf<String>("") }
+    var pet by remember { mutableStateOf<Pet?>(null) }
     var firstTextChangeHome by remember { mutableStateOf<Boolean>(firstTextChangeInitialValue) }
     var firstTextChangeHobbies by remember { mutableStateOf<Boolean>(firstTextChangeInitialValue) }
     var firstTextChangeFamily by remember { mutableStateOf<Boolean>(firstTextChangeInitialValue) }
@@ -169,7 +172,8 @@ fun Content(
             onClick = {
                 coroutineScope.launch {
                     try {
-                        result = generativeModel.generateContent(input).text.orEmpty()
+                        val result = generativeModel.generateContent(input).text.orEmpty()
+                        pet = getPet( result)
                     } catch (e: Exception) {
                         Log.e("ERROR", "Error fetching result", e)
                     }
@@ -180,7 +184,36 @@ fun Content(
         ) {
             Text(text = "Submit")
         }
-        Text(text = result)
+        PetDisplay(pet = pet)
+    }
+}
+
+fun getPet(rawResult: String): Pet? {
+    return if (!rawResult.isNullOrEmpty()) {
+        val cleanedResult = rawResult
+            .replace("```json", "")
+            .replace("```", "")
+        Json.decodeFromString<Pet>(cleanedResult)
+    } else {
+        null
+    }
+}
+
+@Composable
+fun PetDisplay(pet: Pet?) {
+    if (pet == null) {
+        Text(text = "No pet returned")
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = "Name:", fontWeight = FontWeight.Bold)
+                Text(text = pet.name)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = "Description:", fontWeight = FontWeight.Bold)
+                Text(text = pet.description)
+            }
+        }
     }
 }
 
