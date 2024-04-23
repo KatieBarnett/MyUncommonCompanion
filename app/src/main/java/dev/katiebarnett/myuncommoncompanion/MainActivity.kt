@@ -66,7 +66,12 @@ fun Content(
     var firstTextChangeFamily by remember { mutableStateOf<Boolean>(firstTextChangeInitialValue) }
 
     val input by remember { derivedStateOf {
-        "Recommend one pet for me that is not a usual domesticated animal, I live in $home, I like to $hobbies and my family is $family."
+        "Recommend one pet for me that is not a usual domesticated animal, I live in $home, I like to $hobbies and my family is $family. Return the result as a json object that fits the format of this data class:" +
+                "data class Pet(\n" +
+                "    val name: String, \n" +
+                "    val description: String, \n" +
+                "    val photoUrl: String,\n" +
+                ")"
         }
     }
 
