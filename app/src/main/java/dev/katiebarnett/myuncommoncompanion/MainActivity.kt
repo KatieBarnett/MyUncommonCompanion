@@ -1,6 +1,7 @@
 package dev.katiebarnett.myuncommoncompanion
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.BlockThreshold
+import com.google.ai.client.generativeai.type.HarmCategory
+import com.google.ai.client.generativeai.type.SafetySetting
+import com.google.ai.client.generativeai.type.generationConfig
 import dev.katiebarnett.myuncommoncompanion.ui.theme.MyUncommonCompanionTheme
 import kotlinx.coroutines.launch
 
@@ -66,11 +71,23 @@ fun Content(
     }
 
     val coroutineScope = rememberCoroutineScope()
+
+    val harassmentSafety = SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.ONLY_HIGH)
+    val hateSpeechSafety = SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.MEDIUM_AND_ABOVE)
+
+    val config = generationConfig {
+        temperature = 0.9f
+        topK = 16
+        topP = 0.1f
+        maxOutputTokens = 200
+        stopSequences = listOf("dog", "cat")
+    }
+
     val generativeModel = GenerativeModel(
-        // Use a model that's applicable for your use case (see https://ai.google.dev/models)
         modelName = "gemini-pro",
-        // Access your API key as a Build Configuration variable (add it to local.properties - don't check this into git)
-        apiKey = BuildConfig.apiKey
+        apiKey = BuildConfig.apiKey,
+        generationConfig = config,
+        safetySettings = listOf(harassmentSafety, hateSpeechSafety)
     )
 
     Column(
@@ -144,7 +161,11 @@ fun Content(
         Button(
             onClick = {
                 coroutineScope.launch {
-                    result = generativeModel.generateContent(input).text.orEmpty()
+                    try {
+                        result = generativeModel.generateContent(input).text.orEmpty()
+                    } catch (e: Exception) {
+                        Log.e("ERROR", "Error fetching result", e)
+                    }
                 }
             },
             enabled = firstTextChangeHome && firstTextChangeHobbies && firstTextChangeFamily
