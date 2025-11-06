@@ -65,4 +65,8 @@ dependencies {
 
     // Kotlin Serialization
     implementation(libs.kotlinx.serialization.json)
+
+    // Coil image loading
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 }
